@@ -87,6 +87,16 @@ func get_input():
 	if Input.is_action_pressed("brake"):
 		acceleration = transform.x * braking #TODO make a car that is faster backwards
 	
+	if Input.is_action_pressed("drift") and turn != 0: #only drifts if the playher is turning
+		if !is_drifting:
+			is_drifting = true
+			drift_timer = 0.0 #reset the timer each time
+	elif Input.is_action_just_released("drift"):
+		if is_drifting:
+			trigger_turbo()
+			drift_timer = 0.0
+			is_drifting = false
+	
 func calculate_steering(delta):
 	var rear_wheel = position - transform.x * wheel_base / 2.0
 	var front_wheel = position + transform.x * wheel_base / 2.0
@@ -100,19 +110,10 @@ func calculate_steering(delta):
 	
 	# choose which traction value to use depending on speed
 	var traction: float = traction_slow #default traction value
-	
-	if Input.is_action_pressed("drift"): 
+
+	if is_drifting:
 		if velocity.length() > slip_speed:
 			traction = traction_fast
-			if !is_drifting:
-				is_drifting = true
-				drift_timer = 0.0 #reset the timer each time
-			
-	elif Input.is_action_just_released("drift"):
-		if is_drifting:
-			trigger_turbo()
-			drift_timer = 0.0
-			is_drifting = false
 	
 			
 	var d: float = new_heading.dot(velocity.normalized()) # see if the car is moving backwards or forwards
