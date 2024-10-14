@@ -1,8 +1,11 @@
 extends CharacterBody2D
 
 class_name Car
-@onready var speed_label: Label = $"../UI/SpeedLabel"
-@onready var drift_duration_label: Label = $"../UI/DriftDurationLabel"
+
+signal velocity_changed(velocity_magnitude: float)
+
+#@onready var speed_label: Label = $"../UI/SpeedLabel"
+#@onready var drift_duration_label: Label = $"../UI/DriftDurationLabel"
 
 @onready var speed_boost_timer: Timer = $SpeedBoostTimer
 @onready var drift_gpu_particles_2d: GPUParticles2D = $DriftGPUParticles2D
@@ -12,7 +15,7 @@ class_name Car
 @export var steering_angle: float = 15 ## the amount that the front wheel turns, in degrees. higher = tighter turns
 @export var engine_power:float = 900 ## forward acceleration force. higher = faster acceleration
 @export var friction: float = -55  #TODO tie this to the race track
-@export var drag: float = -0.06 ##  a lower drag means the car can reach a higher top speed
+@export var drag: float = -0.02 ##  a lower drag means the car can reach a higher top speed
 @export var braking: float = -450 ## how fast the car comes to a stop
 @export var max_speed_reverse: float = 250 ## limit the speed a car can go backwards #TODO add a meme car that is faster backwards?
 @export var slip_speed: float = 400  ## Speed when the car can start drifting
@@ -22,6 +25,7 @@ class_name Car
 
 var acceleration: Vector2 = Vector2.ZERO
 var steer_direction
+var is_on_road: bool = true
 
 ## Drifting variables
 var is_drifting: bool = false: set = set_drifting ## tracks if the car is currently drifting. setter will activate sparks
@@ -61,14 +65,14 @@ func _physics_process(delta):
 	
 	if is_drifting: #increases drift timer while drifting
 		drift_timer += delta
-		drift_duration_label.set_text(str(drift_timer))
+		#drift_duration_label.set_text(str(drift_timer))
 	
 	
 	
 	velocity += acceleration * delta
 	#print_debug(velocity.length())
 	move_and_slide()
-	speed_label.set_text(str(int(velocity.length())))
+	#speed_label.set_text(str(int(velocity.length())))
 	
 func apply_friction(delta):
 	if acceleration == Vector2.ZERO and velocity.length() < 50:
@@ -87,15 +91,16 @@ func get_input():
 	if Input.is_action_pressed("brake"):
 		acceleration = transform.x * braking #TODO make a car that is faster backwards
 	
-	if Input.is_action_pressed("drift") and turn != 0: #only drifts if the playher is turning
-		if !is_drifting:
-			is_drifting = true
-			drift_timer = 0.0 #reset the timer each time
-	elif Input.is_action_just_released("drift"):
+	if Input.is_action_pressed("drift") and turn != 0: #only drifts if the player is turning
+		if !is_drifting and is_on_road:
+			set_drifting(true)
+	#elif Input.is_action_pressed("drift") and turn == 0: #if the player stops sterring
+		#set_drifting(false)
+		#
+	if Input.is_action_just_released("drift"):
 		if is_drifting:
 			trigger_turbo()
-			drift_timer = 0.0
-			is_drifting = false
+			set_drifting(false)
 	
 func calculate_steering(delta):
 	var rear_wheel = position - transform.x * wheel_base / 2.0
@@ -112,10 +117,9 @@ func calculate_steering(delta):
 	var traction: float = traction_slow #default traction value
 
 	if is_drifting:
-		if velocity.length() > slip_speed:
-			traction = traction_fast
-	
-			
+		traction = traction_fast
+
+
 	var d: float = new_heading.dot(velocity.normalized()) # see if the car is moving backwards or forwards
 	#The dot product will be 0 for a right angle (90 degrees), greater than 0 for angles narrower than 90 degrees and lower than 0 for angles wider than 90 degrees.
 	if d > 0: #if the dot product > 0 the vectors are aligned (going forward)
@@ -149,5 +153,35 @@ func _on_speed_boost_timer_timeout() -> void:
 
 ## SETTERS GETTERS
 func set_drifting(drifting_bool: bool) -> void:
-	is_drifting = drifting_bool
-	drift_gpu_particles_2d.set_emitting(is_drifting)
+	drift_timer = 0.0
+	if !drifting_bool:
+		is_drifting = false
+		for particle_child in get_children():
+			if particle_child is GPUParticles2D:
+				particle_child.set_emitting(drifting_bool)
+		return
+	if velocity.length() > slip_speed:
+		is_drifting = drifting_bool
+		for particle_child in get_children():
+			if particle_child is GPUParticles2D:
+				particle_child.set_emitting(drifting_bool)
+
+
+
+func _on_area_2d_body_entered(body: Node2D) -> void:
+	if body is DirtLayer:
+		is_on_road = false
+		set_drifting(false)  #stops all drifting
+		var speed_reduction = body.speed_reduction
+		engine_power -= speed_reduction
+		
+		
+		
+
+
+func _on_area_2d_body_exited(body: Node2D) -> void:
+	if body is DirtLayer:
+		is_on_road = true
+		var speed_reduction = body.speed_reduction
+		engine_power += speed_reduction
+		

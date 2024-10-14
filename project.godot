@@ -11,8 +11,18 @@ config_version=5
 [application]
 
 config/name="indy5k"
+run/main_scene="res://race_tracks/demo_track.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Global="*res://global.gd"
+
+[global_group]
+
+player_car=""
+finish_line=""
 
 [input]
 
@@ -46,3 +56,4 @@ drift={
 
 2d_physics/layer_1="Car"
 2d_physics/layer_2="Wall"
+2d_physics/layer_3="dirt"

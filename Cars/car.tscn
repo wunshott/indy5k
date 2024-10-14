@@ -1,28 +1,49 @@
-[gd_scene load_steps=5 format=3 uid="uid://grqf1rf4rqa1"]
+[gd_scene load_steps=7 format=3 uid="uid://grqf1rf4rqa1"]
 
 [ext_resource type="Script" path="res://Cars/car.gd" id="1_bx7ue"]
 [ext_resource type="Texture2D" uid="uid://due506oku3fib" path="res://assets/Cars/car_black_1.png" id="2_hysio"]
+[ext_resource type="Texture2D" uid="uid://7hoflbm7x2do" path="res://assets/smoke/whitePuff06.png" id="3_5nxml"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_yms62"]
 radius = 33.0
 height = 128.0
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_4kjlx"]
+lifetime_randomness = 0.5
 particle_flag_disable_z = true
-gravity = Vector3(0, 98, 0)
-scale_min = 4.0
-scale_max = 5.0
+angle_min = -15.0
+angle_max = 15.0
+spread = 50.0
+gravity = Vector3(0, 9.8, 0)
+linear_accel_min = 44.09
+linear_accel_max = 59.0
+scale_min = 0.01
+scale_max = 0.05
+color = Color(1, 1, 1, 0.760784)
 
-[node name="Car" type="CharacterBody2D"]
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_v6nd6"]
+radius = 33.0
+height = 128.0
+
+[node name="Car" type="CharacterBody2D" groups=["player_car"]]
 position = Vector2(555, 336)
+collision_mask = 3
 script = ExtResource("1_bx7ue")
-traction_fast = 0.9
+wheel_base = 60.0
+steering_angle = 11.0
+traction_fast = 0.5
+mini_drift_threshold = 0.5
+med_drift_threshold = 1.0
+large_drift_threshold = 1.5
+large_turbo_power = 2.8
+large_turbo_duration = 1.4
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 rotation = 1.5708
 texture = ExtResource("2_hysio")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
 rotation = 1.5708
 shape = SubResource("CapsuleShape2D_yms62")
 
@@ -34,7 +55,27 @@ wait_time = 0.15
 one_shot = true
 
 [node name="DriftGPUParticles2D" type="GPUParticles2D" parent="."]
+position = Vector2(-43, -37)
 emitting = false
+amount = 15
 process_material = SubResource("ParticleProcessMaterial_4kjlx")
+texture = ExtResource("3_5nxml")
+
+[node name="DriftGPUParticles2D2" type="GPUParticles2D" parent="."]
+position = Vector2(-43, 37)
+emitting = false
+amount = 15
+process_material = SubResource("ParticleProcessMaterial_4kjlx")
+texture = ExtResource("3_5nxml")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_v6nd6")
 
 [connection signal="timeout" from="SpeedBoostTimer" to="." method="_on_speed_boost_timer_timeout"]
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]
+[connection signal="body_exited" from="Area2D" to="." method="_on_area_2d_body_exited"]

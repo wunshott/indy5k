@@ -1,0 +1,51 @@
+[gd_scene load_steps=2 format=3 uid="uid://cb65yd4mi6q7a"]
+
+[ext_resource type="Script" path="res://ui_scripts/main_menu.gd" id="1_x45c6"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_x45c6")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -127.0
+offset_top = -85.0
+offset_right = 127.0
+offset_bottom = 86.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="SandBoxButton" type="Button" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "SandBox"
+
+[node name="Button2" type="Button" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Time Trial"
+
+[node name="Button3" type="Button" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "2 Player (Player v Player) Modes"
+
+[node name="Button4" type="Button" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "2 Player (Player v CPU) Modes"
+
+[node name="Button5" type="Button" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Exit"
+
+[connection signal="pressed" from="PanelContainer/VBoxContainer/SandBoxButton" to="." method="_on_sand_box_button_pressed"]
